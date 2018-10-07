@@ -1,0 +1,4 @@
+CORRECTION.md
+
+mongo/data/*
+!mongo/data/.gitkeep
