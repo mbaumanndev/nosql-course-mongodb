@@ -13,6 +13,12 @@ NoSQL Course MongoDB
 - [Introduction aux collections](#introduction-aux-collections)
   - [Création d'une collection](#cr%C3%A9ation-dune-collection)
   - [Suppression d'une collection](#suppression-dune-collection)
+- [Types de données dans MongoDB](#types-de-donn%C3%A9es-dans-mongodb)
+- [Opérations CRUD sur les collections](#op%C3%A9rations-crud-sur-les-collections)
+  - [Insertion de documents](#insertion-de-documents)
+  - [Récupération de documents](#r%C3%A9cup%C3%A9ration-de-documents)
+  - [Modification de documents](#modification-de-documents)
+  - [Suppression de documents](#suppression-de-documents)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -147,3 +153,60 @@ show collections
 // Retourne : 
 // salles
 ```
+
+## Types de données dans MongoDB
+
+Avant de commencer à créer de documents, nous allons jeter un oeil aux différents types de données que MongoDB met à notre disposition pour structurer nos documents :
+- Des châines de caractères, elles doivent être valide en UTF-8,
+- Des entiers, sur 32 ou 64 bits (`int` ou `long`),
+- Des booléens,
+- Des nombres décimaux 64 ou 128 bits (`double` ou `decimal`),
+- Des tableaux,
+- Des objets,
+- Des dates,
+- Des timestamps,
+- Du binaire,
+- Du JavaScript,
+- Des expressions régulières,
+- Des valeurs nulles (`null`).
+
+Ceci implique que nos documents peuvent contenir des sous-documents, des tableaux, etc, et ça implique aussi de repenser la structuration de nos données par rapport à un SGBD relationnel.
+
+## Opérations CRUD sur les collections
+
+Mongo nous permet de faire des opérations CRUD (Create, Read, Update, Delete). Nous allons faires quelques opérations CRUD sur notre collection `salles` de notre base `iut`.
+
+### Insertion de documents
+
+Afin d'insérer un document dans une collection, il faut appeler la commande `insert()` sur cette dernière. Ainsi, pour insérer un document dans une collection `profs`, nous ferions ainsi :
+
+```js
+db.profs.insert({"nom": "Baumann", "prenom": "Maxime", "statut": "Vacataire"})
+```
+
+On peut faire de l'insertion de multiples documents à l'aide de `insertMany()` ainsi que d'un seul document avec `insertOne()`. `insert()` sert à faire de l'insertion peut importe le nombre (1 ou plus). Dans les cas d'insertion multiple, il faut systématiquement passer un tableau de document comme premier paramètre.
+
+> À vous de jouer !
+>
+> Dans la collection `salles`, insérez les données suivantes :
+>
+> | nom | postes | places |
+> |-----|-------:|-------:|
+> | TP1 | 15     | 28     |
+> | TP2 | 16     | 32     |
+> | TP3 | 15     | 26     |
+> | TD1 | 0      | 30     |
+> | TD2 | 0      | 28     |
+> | TD3 | 0      | 26     |
+
+### Récupération de documents
+
+TODO
+
+### Modification de documents
+
+TODO
+
+### Suppression de documents
+
+TODO
