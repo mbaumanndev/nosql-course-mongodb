@@ -17,7 +17,14 @@ NoSQL Course MongoDB
 - [Opérations CRUD sur les collections](#op%C3%A9rations-crud-sur-les-collections)
   - [Insertion de documents](#insertion-de-documents)
   - [Récupération de documents](#r%C3%A9cup%C3%A9ration-de-documents)
+    - [Projections](#projections)
+    - [Requêtes avec critères](#requ%C3%AAtes-avec-crit%C3%A8res)
+    - [Itération sur le curseur](#it%C3%A9ration-sur-le-curseur)
+    - [Modification du comportement du curseur](#modification-du-comportement-du-curseur)
   - [Modification de documents](#modification-de-documents)
+    - [Clause query](#clause-query)
+    - [Clause update](#clause-update)
+    - [Clause options](#clause-options)
   - [Suppression de documents](#suppression-de-documents)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -128,7 +135,7 @@ use iut
 show collections
 // Retourne :
 // salles
-db.profs.insert({"nom": "Baumann", "prenom": "Maxime", "statut": "Vacataire"})
+db.profs.insert({nom: "Baumann", prenom: "Maxime", statut: "Vacataire"})
 // Retourne : WriteResult({ "nInserted" : 1 })
 show collections
 // Retourne :
@@ -181,7 +188,7 @@ Mongo nous permet de faire des opérations CRUD (Create, Read, Update, Delete). 
 Afin d'insérer un document dans une collection, il faut appeler la commande `insert()` sur cette dernière. Ainsi, pour insérer un document dans une collection `profs`, nous ferions ainsi :
 
 ```js
-db.profs.insert({"nom": "Baumann", "prenom": "Maxime", "statut": "Vacataire"})
+db.profs.insert({nom: "Baumann", prenom: "Maxime", statut: "Vacataire"})
 ```
 
 On peut faire de l'insertion de multiples documents à l'aide de `insertMany()` ainsi que d'un seul document avec `insertOne()`. `insert()` sert à faire de l'insertion peut importe le nombre (1 ou plus). Dans les cas d'insertion multiple, il faut systématiquement passer un tableau de document comme premier paramètre.
@@ -201,12 +208,76 @@ On peut faire de l'insertion de multiples documents à l'aide de `insertMany()` 
 
 ### Récupération de documents
 
-TODO
+Afin de récupérer des documents, nous allons utiliser la commande `find()` sur notre collection. Par exemple, pour récupérer les documents de la collection `salles` que nous venons de créer, il faudrait faire `db.salles.find()`. Notez qu'il existe également une commande `findOne()` qui retourne un seul document correspondant aux critères choisis.
+
+#### Projections
+
+Comme avec un SGBD relationnel, nous pouvons faire une projection des champs qui nous intéresse. Par exemple, si nous souhaitons récupérer uniquement le champ `nom`, il faut passer la projection en second paramètre : `db.salles.find({},{_id: 0, nom: 1})`.
+
+Dans ce dernier exemple, `{_id: 0}` indique que nous ne souhaitons pas récupérer l'id de notre élément dans la projection.
+
+Avec Mongo, les projections supportent quelques opérateurs, majoritairement dédiés aux `array`. Nous les étudierons ultérieurement.
+
+#### Requêtes avec critères
+
+Nous avons la possibilité de faire des requêtes avec des critères, sur un champ, un champ de sous-document (nous verrons celà plus tard), sur des plages de valeurs, etc.
+
+La première chose que nous allons voir sont les critères sur l'égalité. Pour sélectionner un document avec un champ dont la valeur est égale à une valeur, il faut passer cette égalité comme premier paramètre de la commande `find()`.
+
+Par exemple, si nous voulons récupérer les salles qui possèdent `0` `postes` : `db.salles.find({postes:0})`.
+
+On va également pouvoir faire des conditions sur des valeurs plus petites ou plus grandes. Par exemple, si je veux récupérer les salles avec plus de 10 places, mais avec moins que 30 places : `db.salles.find({places: {$gt: 10, $lt: 30}})`.
+
+Il existe d'autres opérateurs similaires à `$gt` ou `$lt`, nous les expérimenterons au fur et à mesure. En voici la liste complète :
+
+| Opérateur                                                                         | Description                                                       |
+|-----------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`$eq`](https://docs.mongodb.com/manual/reference/operator/query/eq/#op._S_eq)    | Match les valeurs égales à une valeur spécifiée                   |
+| [`$gt`](https://docs.mongodb.com/manual/reference/operator/query/gt/#op._S_gt)    | Match les valeurs strictement supéreieures à une valeur spécifiée |
+| [`$gte`](https://docs.mongodb.com/manual/reference/operator/query/gte/#op._S_gte) | Match les valeurs supérieures ou égales à une valeur spécifiée    |
+| [`$in`](https://docs.mongodb.com/manual/reference/operator/query/in/#op._S_in)    | Match les valeurs présentes dans un ensemble                      |
+| [`$lt`](https://docs.mongodb.com/manual/reference/operator/query/lt/#op._S_lt)    | Match les valeurs strictement inférieures à une valeur spécifiée  |
+| [`$lte`](https://docs.mongodb.com/manual/reference/operator/query/lte/#op._S_lte) | Match les valeurs inférieures ou égales à une valeur spécifiée    |
+| [`$ne`](https://docs.mongodb.com/manual/reference/operator/query/ne/#op._S_ne)    | Match les valeurs différentes à la valeur sépcifiée               |
+| [`$nin`](https://docs.mongodb.com/manual/reference/operator/query/nin/#op._S_nin) | Match les valeurs absentes d'un ensemble                          |
+
+On peut également utiliser des opérateurs logiques pour composer des requêtes plus complexes. Par défaut, lorsqu'on ne précise pas d'opérateur logique, il s'agit d'un opérateur `$and` implicite. Avant d'aller plus loin, voici la liste complète des opérateurs logiques :
+
+| Opérateur                                                                         | Syntaxe                                                                        |
+|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`$and`](https://docs.mongodb.com/manual/reference/operator/query/and/#op._S_and) | `{ $and: [ { <expression1> }, { <expression2> } , ... , { <expressionN> } ] }` |
+| [`$not`](https://docs.mongodb.com/manual/reference/operator/query/not/#op._S_not) | `{ field: { $not: { <operator-expression> } } }`                               |
+| [`$nor`](https://docs.mongodb.com/manual/reference/operator/query/nor/#op._S_nor) | `{ $nor: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }`  |
+| [`$or`](https://docs.mongodb.com/manual/reference/operator/query/or/#op._S_or)    | `{ $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }`   |
+
+Il existe également des opérateurs pour vérifier l'existence ou le type de certains champs au sein de documents.
+
+| Opérateur                                                                                  | Syntaxe                                                                                             |
+|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| [`$exists`](https://docs.mongodb.com/manual/reference/operator/query/exists/#op._S_exists) | `{ field: { $exists: <boolean> } }`                                                                 |
+| [`$type`](https://docs.mongodb.com/manual/reference/operator/query/type/#op._S_type)       | `{ field: { $type: <BSON type> } }` ou `{ field: { $type: [ <BSON type1> , <BSON type2>, ... ] } }` |
+
+Il existe encore d'autres types d'opérateurs, mais nous les étudierons plus tard.
+
+#### Itération sur le curseur
+
+
+#### Modification du comportement du curseur
+
+
 
 ### Modification de documents
 
-TODO
+
+
+#### Clause query
+
+
+#### Clause update
+
+
+#### Clause options
+
 
 ### Suppression de documents
 
-TODO
