@@ -259,6 +259,14 @@ Il existe également des opérateurs pour vérifier l'existence ou le type de ce
 
 Il existe encore d'autres types d'opérateurs, mais nous les étudierons plus tard.
 
+> À vous de jouer !
+>
+> À l'aide des opérateurs vus précédement, écrivez les requêtes suivantes :
+> - Récupérez les salles contenant 15 postes ou moins,
+> - Récupérez les salles sans postes et avec 28 places ou plus,
+> - Récupérez les salles sans postes et avec 26 places, ou avec 15 postes et 28 places ou moins,
+> - Récupérez les salles n'ayant pas moins de 15 postes ou ayant 15 postes ou moins et 28 places.
+
 #### Itération sur le curseur
 
 
