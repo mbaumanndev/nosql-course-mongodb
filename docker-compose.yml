@@ -22,3 +22,6 @@ services:
       - 8081:8081
     depends_on:
       - mongo
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    command: ["/wait-for-it.sh", "mongo:27017", "--", "/docker-entrypoint.sh"]
