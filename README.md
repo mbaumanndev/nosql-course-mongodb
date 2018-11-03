@@ -33,10 +33,39 @@ NoSQL Course MongoDB
       - [`$unset`](#unset)
     - [Clause options](#clause-options)
   - [Suppression de documents](#suppression-de-documents)
+- [TP Blanc](#tp-blanc)
+  - [Correction](#correction)
 - [Tableaux et sous-documents](#tableaux-et-sous-documents)
   - [Opérations avec les tableaux](#op%C3%A9rations-avec-les-tableaux)
-  - [Intérêt des sous-documents](#int%C3%A9r%C3%AAt-des-sous-documents)
+    - [Tableaux en mode insertion](#tableaux-en-mode-insertion)
+    - [Lecture de données dans un tableau](#lecture-de-donn%C3%A9es-dans-un-tableau)
+      - [`$all`](#all)
+      - [`$elemMatch`](#elemmatch)
+      - [`$size`](#size)
+    - [Opérateurs de projection](#op%C3%A9rateurs-de-projection)
+      - [`$` (Projection)](#-projection)
+      - [`$elemMatch` (Projection)](#elemmatch-projection)
+      - [`$slice` (Projection)](#slice-projection)
+    - [Opérateurs de mise à jour de données dans un tableau](#op%C3%A9rateurs-de-mise-%C3%A0-jour-de-donn%C3%A9es-dans-un-tableau)
+      - [`$`, `$[]` et `$[<identifier>]`](#--et-identifier)
+      - [`$addToSet`](#addtoset)
+      - [`$pop`](#pop)
+      - [`$pull`](#pull)
+      - [`$push`](#push)
+      - [`$pullAll`](#pullall)
+    - [Modifiers pour l'update](#modifiers-pour-lupdate)
+      - [`$each`](#each)
+      - [`$position`](#position)
+      - [`$slice` (Update)](#slice-update)
+      - [`$sort`](#sort)
+  - [Sous-documents et tableaux de sous-documents](#sous-documents-et-tableaux-de-sous-documents)
 - [Agrégats](#agr%C3%A9gats)
+  - [Map-Reduce](#map-reduce)
+  - [Pipeline d'aggrégation](#pipeline-daggr%C3%A9gation)
+- [Recherches textuelles et par Regex](#recherches-textuelles-et-par-regex)
+- [Recherche Géospatiale](#recherche-g%C3%A9ospatiale)
+- [Introduction à la mise en place de cluster mongodb](#introduction-%C3%A0-la-mise-en-place-de-cluster-mongodb)
+- [Pour aller plus loins](#pour-aller-plus-loins)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -399,6 +428,9 @@ db.salles.updateMany({nom: "TD4"}, {$set: {nom: "TD4", places: 28, postes: 12}},
 //}
 db.salles.deleteOne({nom: "TD4"})
 ```
+
+## TP Blanc
+
 > À vous de jouer !
 >
 > Pour ce second exercice type TP noté, vous avez le droit à la documentation de MongoDB et de me demander de l'aide. Le projet sera à rendre au plus tard le dimanche 4 novembre à 12h à mon adresse mail.
@@ -437,7 +469,7 @@ db.salles.deleteOne({nom: "TD4"})
 > | 19          | Kilian    | Le gall     | kilian.le-gall@gmail.com      | 17  | 0        |
 > | 20          | Noë       | Germain     | noe.germain@gmail.com         | 27  | 0        |
 >
-> Question 4 : Récupérez personnes de plus de 27 ans et ayant au moins 3 enfants. Passez les deux premiers résultats.
+> Question 4 : Récupérez les personnes de plus de 27 ans et ayant au moins 3 enfants. Passez les deux premiers résultats.
 >
 > Question 5 : Renommez le champ `technicalId` en `id`.
 >
@@ -461,15 +493,159 @@ db.salles.deleteOne({nom: "TD4"})
 >
 > Question 15 : Supprimer les personnes ayant deux enfants.
 
+### Correction
+
+```js
+// Question 1 : Créez une collection `people` dans une base de données `analytics`.
+use analytics
+db.createCollection('people')
+// Question 2 : À l'aide d'une commande d'insertion, insérez les données suivantes :
+db.people.insertMany([
+  { technicalId: 1, firstname: 'Clément', lastname: 'Charpentier', email: 'clement.charpentier@gmail.com', age: 25, children: 2 },
+  { technicalId: 2, firstname: 'Lauriane', lastname: 'Rodriguez', email: 'lauriane.rodriguez@gmail.com', age: 32, children: 3 },
+  { technicalId: 3, firstname: 'Amélie', lastname: 'Martin', email: 'amelie.martin@gmail.com', age: 31, children: 1 },
+  { technicalId: 4, firstname: 'Lola', lastname: 'Brunet', email: 'lola.brunet@gmail.com', age: 27, children: 2 },
+  { technicalId: 5, firstname: 'Timéo', lastname: 'Blanchard', email: 'timeo.blanchard@gmail.com', age: 43, children: 3 },
+  { technicalId: 6, firstname: 'Corentin', lastname: 'Deschamps', email: 'corentin.deschamps@gmail.com', age: 15, children: 0 },
+  { technicalId: 7, firstname: 'Hugo', lastname: 'Bernard', email: 'hugo.bernard@gmail.com', age: 19, children: 0 },
+  { technicalId: 8, firstname: 'Davy', lastname: 'Roy', email: 'davy.roy@gmail.com', age: 23, children: 0 },
+  { technicalId: 9, firstname: 'Bruno', lastname: 'Robin', email: 'bruno.robin@gmail.com', age: 35, children: 2 },
+  { technicalId: 10, firstname: 'Yasmine', lastname: 'Maillard', email: 'yasmine.maillard@gmail.com', age: 47, children: 3 }
+])
+// Question 3 : À l'aide d'une méthode de mise à jour de données, insérez les données suivantes :
+db.people.updateMany({ technicalId: 11 }, { $set: { firstname: 'Zacharis', lastname: 'Dufour', email: 'zacharis.dufour@gmail.com', age: 53, children: 3 } }, { upsert: true })
+db.people.updateMany({ technicalId: 12 }, { $set: { firstname: 'Renaud', lastname: 'Marechal', email: 'renaud.marechal@gmail.com', age: 48, children: 2 } }, { upsert: true })
+db.people.updateMany({ technicalId: 13 }, { $set: { firstname: 'Lilou', lastname: 'Germain', email: 'lilou.germain@gmail.com', age: 29, children: 1 } }, { upsert: true })
+db.people.updateMany({ technicalId: 14 }, { $set: { firstname: 'Maryam', lastname: 'Louis', email: 'maryam.louis@gmail.com', age: 36, children: 2 } }, { upsert: true })
+db.people.updateMany({ technicalId: 15 }, { $set: { firstname: 'Amandine', lastname: 'Adam', email: 'amandine.adam@gmail.com', age: 21, children: 0 } }, { upsert: true })
+db.people.updateMany({ technicalId: 16 }, { $set: { firstname: 'Lana', lastname: 'Daniel', email: 'lana.daniel@gmail.com', age: 27, children: 2 } }, { upsert: true })
+db.people.updateMany({ technicalId: 17 }, { $set: { firstname: 'Clotilde', lastname: 'Vincent', email: 'clotilde.vincent@gmail.com', age: 18, children: 0 } }, { upsert: true })
+db.people.updateMany({ technicalId: 18 }, { $set: { firstname: 'Benjamin', lastname: 'Morin', email: 'benjamin.morin@gmail.com', age: 36, children: 1 } }, { upsert: true })
+db.people.updateMany({ technicalId: 19 }, { $set: { firstname: 'Kilian', lastname: 'Le gall', email: 'kilian.le-gall@gmail.com', age: 17, children: 0 } }, { upsert: true })
+db.people.updateMany({ technicalId: 20 }, { $set: { firstname: 'Noë', lastname: 'Germain', email: 'noe.germain@gmail.com', age: 27, children: 0 } }, { upsert: true })
+// Question 4 : Récupérez les personnes de plus de 27 ans et ayant au moins 3 enfants. Passez les deux premiers résultats.
+db.people.find({ age: { $gt: 27 }, children: { $gte: 3 } })
+// Question 5 : Renommez le champ `technicalId` en `id`.
+db.people.updateMany({}, { $rename: { 'technicalId' : 'id' } })
+// Question 6 : Ajoutez un an à toutes les personnes de moins de 20 ans.
+db.people.updateMany({ age: { $lt: 20 } }, { $inc: { age: 1 } })
+// Question 7 : Récupérez les prénoms des 5 personnes ayant le plus d'enfants.
+db.people.find({}, { _id: 0, firstname: 1 }).sort({ children: -1 }).limit(5)
+// Question 8 : Ajoutez un champ `cars` avec une valeur par défaut de `2` aux personnes de plus de 30 ans.
+db.people.updateMany({ age: { $gt: 30 } }, { $set: { cars: 2 } })
+// Question 9 : Sur les documents avec un id technique inférieure ou égal à 10, ajoutez un champ `lastUpdate` avec pour valeur le timestamp courant.
+db.people.updateMany({ id: { $lte: 10 } }, { $currentDate: { lastUpdate: { $type: 'timestamp' } } })
+// Question 10 : Supprimez les personnes ayant entre 25 et 35 ans n'ayant qu'un seul enfant, ainsi que les personnes de plus de 40 ans avec 2 enfants.
+db.people.deleteMany({ $or: [{ age: { $gt: 25, $lt: 35 }, children: 1 }, { age: { $gt: 40 }, children: 2 }] })
+// Question 11 : Récupérez les 5 personnes les plus agées, par nombre d'enfants décroissant. Rendez le résultat plus lisible.
+db.people.find().sort({ age: -1, children: -1}).limit(5).pretty()
+// Question 12 : Supprimez le champ `email` des personnes entre 30 et 40 ans.
+db.people.updateMany({ age: { $gt: 30, $lt: 40 } }, { $unset: { email: '' } })
+// Question 13 : Récupérez 5 personnes ayant un email en triant par email de façon décroissante et nom de famille croissant, à condition que les personnes aient entre 15 et 20 ans ou 25 et 30 ans.
+db.people.find({ email: { $exists: true }, $or: [{ age: { $gt: 15, $lt: 20 } }, { age: { $gt: 25, $lt: 30 } }] }).sort({ email: 1, lastname: -1 })
+// Question 14 : Récupérez les personnes ayant un email et des voitures et trier par nombre d'enfant décroissant et âge croissant.
+db.people.find({ email: { $exists: true }, cars: { $exists: true } }).sort({ children: -1, age: 1 })
+// Question 15 : Supprimer les personnes ayant deux enfants.
+db.people.deleteMany({ children: 2 })
+```
+
 ## Tableaux et sous-documents
 
 
 ### Opérations avec les tableaux
 
 
-### Intérêt des sous-documents
+#### Tableaux en mode insertion
 
+
+
+
+#### Lecture de données dans un tableau
+
+
+##### `$all`
+
+
+##### `$elemMatch`
+
+
+
+
+
+##### `$size`
+
+
+
+#### Opérateurs de projection
+
+##### `$` (Projection)
+
+
+##### `$elemMatch` (Projection)
+
+
+##### `$slice` (Projection)
+
+
+#### Opérateurs de mise à jour de données dans un tableau
+
+
+##### `$`, `$[]` et `$[<identifier>]`
+
+
+##### `$addToSet`
+
+
+##### `$pop`
+
+
+##### `$pull`
+
+
+##### `$push`
+
+
+##### `$pullAll`
+
+
+#### Modifiers pour l'update
+
+
+##### `$each`
+
+
+##### `$position`
+
+
+##### `$slice` (Update)
+
+
+##### `$sort`
+
+
+### Sous-documents et tableaux de sous-documents
 
 ## Agrégats
+
+
+### Map-Reduce
+
+
+### Pipeline d'aggrégation
+
+
+## Recherches textuelles et par Regex
+
+
+
+## Recherche Géospatiale
+
+
+
+## Introduction à la mise en place de cluster mongodb
+
+
+
+## Pour aller plus loins
 
 
