@@ -59,6 +59,7 @@ NoSQL Course MongoDB
       - [`$slice` (Update)](#slice-update)
       - [`$sort`](#sort)
   - [Sous-documents et tableaux de sous-documents](#sous-documents-et-tableaux-de-sous-documents)
+  - [Correction](#correction-1)
 - [Agrégats](#agr%C3%A9gats)
   - [Map-Reduce](#map-reduce)
   - [Pipeline d'aggrégation](#pipeline-daggr%C3%A9gation)
@@ -895,6 +896,43 @@ Tout ce que nous avons vu jusque ici reste entièrement valable pour ces deux é
 > - Gauthier Guibord
 >
 > Question 10 : Immaginez maintenant que l'on gère l'emploi du temps d'une année de cette façon, quel(s) problème(s) y voyez-vous ?
+
+### Correction
+
+```js
+// Question 1
+use iut
+db.createCollection('salles')
+db.salles.insertMany([ { nom: 'TP01' }, { nom: 'TP02' }, { nom: 'TP03' } ])
+// Question 3
+db.salles.update({ nom: 'TP01' }, {
+    $set: { postes: [
+        { nom: 'TP01-01', OS: [ 'Windows 7', 'Ubutnu 14' ] },
+        { nom: 'TP01-02', OS: [ 'Windows 7', 'Ubutnu 14' ] },
+        { nom: 'TP01-03', OS: [ 'Windows 7', 'Ubutnu 14' ] },
+        { nom: 'TP01-04', OS: [ 'Windows 7', 'Ubutnu 14' ] },
+        { nom: 'TP01-05', OS: [ 'Windows 7', 'Ubutnu 14' ] }
+    ]}
+})
+db.salles.update({ nom: 'TP02' }, {
+    $set: { postes: [
+        { nom: 'TP02-01', OS: [ 'Windows 7', 'Centos 7' ] },
+        { nom: 'TP02-02', OS: [ 'Windows 7', 'Centos 7' ] },
+        { nom: 'TP02-03', OS: [ 'Windows 7', 'Centos 7' ] },
+        { nom: 'TP02-04', OS: [ 'Windows 7', 'Centos 7' ] },
+        { nom: 'TP02-05', OS: [ 'Windows 7', 'Centos 7' ] }
+    ]}
+})
+db.salles.update({ nom: 'TP03' }, {
+    $set: { postes: [
+        { nom: 'TP03-01', OS: [ 'Windows 10', 'Ubutnu 14' ] },
+        { nom: 'TP03-02', OS: [ 'Windows 10', 'Ubutnu 14' ] },
+        { nom: 'TP03-03', OS: [ 'Windows 10', 'Ubutnu 14' ] },
+        { nom: 'TP03-04', OS: [ 'Windows 10', 'Ubutnu 14' ] },
+        { nom: 'TP03-05', OS: [ 'Windows 10', 'Ubutnu 14' ] }
+    ]}
+})
+```
 
 ## Agrégats
 
