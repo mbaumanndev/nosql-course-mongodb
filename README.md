@@ -551,88 +551,389 @@ db.people.deleteMany({ children: 2 })
 
 ## Tableaux et sous-documents
 
+Jusqu'à présent, nous avons utilisé des objets mongo assez simple, avec une seule dimension dans les champs. Nous allons à présent voir la capacité de mongo à gérer des tableaux ainsi que des sous-documents.
 
 ### Opérations avec les tableaux
 
+Mongo offre la possibilité de traiter les tableaux comme n'importe quel type avec des opérateurs dédiés aux opérations CRUD. Nous pouvons donc définir des champs de type tableaux dans nos différents documents. 
 
 #### Tableaux en mode insertion
 
+Les tableaux se notent entre crochets (`[]`), et peuvent être de tout types.
 
+Si nous reprennons notre exemple avec les salles de l'IUT, nous pouvons faire la requête suivante pour ajouter une salle `TP4` avec quelques `postes` :
 
+```js
+db.salles.insert({ nom: 'TP4', places: 26, postes: ['TP4-01', 'TP4-02', 'TP4-03', 'TP4-04'] })
+// Retourne : WriteResult({ "nInserted" : 1 })
+db.salles.find({ nom: 'TP4' }).pretty()
+// Retourne :
+// {
+//         "_id" : ObjectId("5bddd862d43bed336676b6bf"),
+//         "nom" : "TP4",
+//         "places" : 26,
+//         "postes" : [
+//                 "TP4-01",
+//                 "TP4-02",
+//                 "TP4-03",
+//                 "TP4-04"
+//         ]
+// }
+```
 
 #### Lecture de données dans un tableau
 
+Afin de récupérer finement des données dans un tableau, mongo nous met à disposition de nouveaux opérateurs.
+
+| Opérateur                                                                                           | Action                                                                                                    |
+|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`$all`](https://docs.mongodb.com/manual/reference/operator/query/all/#op._S_all)                   | Match les documents dont les tableaux contenant toutes les valeurs spécifiées                             |
+| [`$elemMatch`](https://docs.mongodb.com/manual/reference/operator/query/elemMatch/#op._S_elemMatch) | Match les documents dont les tableaux pour lesquels au moins un élément remplit les critères de sélection |
+| [`$size`](https://docs.mongodb.com/manual/reference/operator/query/size/#op._S_size)                | Match les documents dont les tableaux pour lesquels la longueur correspond à la valeur entrée             |
+
+Ces opérateurs ne font pas tout, il y a également un nouvel élément syntaxique : la notation `.`. Le `.` permet d'accéder à des sous-élements d'un tableau. Nous l'illustrerons plus tard quand nous travaillerons sur les sous-documents, qui utilisent la même syntaxe.
 
 ##### `$all`
 
+L'opérateur `$all` permet de récupérer les document dont le champ de tableau désigné contient toutes les valeurs spécifiées. Si il en manque une seule, le document n'est pas pris, si elles sont toutes présentes et d'autres valeurs avec, le document est pris.
+
+Syntaxe : `{ <field>: { $all: [ <value1> , <value2> ... ] } }`
+
+On peut reproduire son comportement à l'aide de l'opérateur `$and` étudié précédement.
+
+```js
+db.salles.find({ postes: { $all: ['TP4-01', 'TP4-03'] } })
+db.salles.find({ $and: [{ postes: 'TP4-01' }, { postes: 'TP4-03' }] })
+// Ces deux commandes sont équivalentes
+```
 
 ##### `$elemMatch`
 
+L'opérateur `$elemMatch`permet de récupérer les documents dont le champ de tableau désigné match les critères de sélection (query).
 
+Syntaxe : `{ <field>: { $elemMatch: { <query1>, <query2>, ... } } }`
 
+Exemple :
 
+```js
+db.test.insert({ titre: 'Suite quelconque', valeurs: [2, 4, 6, 8, 10, 12, 14] })
+db.test.insert({ titre: 'Autre suite', valeurs: [20, 40, 60, 80, 100, 120, 140] })
+db.test.find({ valeurs: { $elemMatch: { $gte: 10, $lt: 20  } } })
+// Retourne le premier document : le second ne contient pas de valeur supérieures ou égales à 10 et inférieures à 20.
+db.test.find({ valeurs: { $elemMatch: { $gt: 10, $lte: 20  } } })
+// Retourne les deux documents, ils conetienent biens des valeurs plus grandes que 10 et inférieures ou égales à 20 dans le tableau valeurs.
+```
 
 ##### `$size`
 
+L'opérateur `$size` retourne les documents dont le champ donné est de la taille spécifiée.
 
+Syntaxe : `{ <field>: { $size: <fieldSize> } }`
 
 #### Opérateurs de projection
 
+Mongo propose différents opérateurs de projection, nous allons nous intéressé à seulement trois d'entre eux qui nous seront utile pour les traitements sur les tableaux.
+
+| Opérateur                                                                                                  | Action                                                                                              |
+|------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| [`$`](https://docs.mongodb.com/manual/reference/operator/projection/positional/#proj._S_)                  | Permet de projeter le premier élément de tableau remplissant la condition de recherche              |
+| [`$elemMatch`](https://docs.mongodb.com/manual/reference/operator/projection/elemMatch/#proj._S_elemMatch) | Permet de projeter le premier élément de tableau remplissant la condition de recherche en paramètre |
+| [`$slice`](https://docs.mongodb.com/manual/reference/operator/projection/slice/#proj._S_slice              | Permet de projeter une partie du tableau                                                            |
+
 ##### `$` (Projection)
 
+Permet de projeter le premier élément de tableau remplissant la condition de recherche.
+
+Syntaxes :
+```js
+db.collection.find({ <array>: <value>, ... }, { "<array>.$": 1 })
+db.collection.find({ <array.field>: <value>, ... }, { "<array>.$": 1 })
+```
 
 ##### `$elemMatch` (Projection)
 
+Permet de projeter le premier élément de tableau remplissant la condition de recherche en paramètre.
+
+Syntaxe : `db.collection.find({ <field>: <value> }, { <field>: { $elemMatch: <query> } })`
 
 ##### `$slice` (Projection)
 
+Permet de projeter une partie du tableau.
+
+Syntaxe : `db.collection.find({ <field>: <value> }, { <array>: { $slice: <count> } })`
+
+Remarque : Si le `<count>` est positif, la projection affichera ce nombre d'éléments en partant du début du tableau, si il est négatif, il le fera en partant de la fin du tableau.
 
 #### Opérateurs de mise à jour de données dans un tableau
 
+Pour mettre à jour les tableaux, mongo nous offre de nouveau plusieurs opérateurs.
+
+| Opérateur                                                                                                                    | Action                                                                                                                            |
+|------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`$`](https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_)                                          | Agit comme un placeholder pour mettre à jour le premier élément du tableau satisfaisant la condition                              |
+| [`$[]`](https://docs.mongodb.com/manual/reference/operator/update/positional-all/#up._S_[])                                  | Agit comme un placeholder pour mettre à jour tous les éléments du tableau satisfaisant la condition                               |
+| [`$[<identifier>]`](https://docs.mongodb.com/manual/reference/operator/update/positional-filtered/#up._S_[%3Cidentifier%3E]) | Agit comme un placeholder pour mettre à jour tous les éléments de tableaux satisfaisant la clause `arrayFilters` pour le document |
+| [`$addToSet`](https://docs.mongodb.com/manual/reference/operator/update/addToSet/#up._S_addToSet)                            | Ajoute un élément au tableau si il n'existe pas déjà                                                                              |
+| [`$pop`](https://docs.mongodb.com/manual/reference/operator/update/pop/#up._S_pop)                                           | Retire le premier ou le dernier élément du tableau                                                                                |
+| [`$pull`](https://docs.mongodb.com/manual/reference/operator/update/pull/#up._S_pull)                                        | Retire tous les éléments du tableau satisfaisant la condition                                                                     |
+| [`$push`](https://docs.mongodb.com/manual/reference/operator/update/push/#up._S_push)                                        | Ajoute un élément dans un tableau                                                                                                 |
+| [`$pullAll`](https://docs.mongodb.com/manual/reference/operator/update/pullAll/#up._S_pullAll)                               | Retire toutes les valeurs du tableau spécifié si elles sont présente dans la liste donnée en paramètre                            |
 
 ##### `$`, `$[]` et `$[<identifier>]`
 
+Pour ces trois opérateurs, nous allons directement nous reporter à la documentationde mongo :
+- [Documentation : `$`](https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_)
+- [Documentation : `$[]`](https://docs.mongodb.com/manual/reference/operator/update/positional-all/#up._S_[])
+- [Documentation : `$[<identifier>]`](https://docs.mongodb.com/manual/reference/operator/update/positional-filtered/#up._S_[%3Cidentifier%3E])
 
 ##### `$addToSet`
 
+L'opérateur `$addToSet` ajoute l'élément passé en paramètre dans le tableau, à condition qu'il ne soit pas déjà présent. Si l'élément en paramètre est un tableau, par défaut, il sera ajouté en tant que sous-tableau de notre tableau.
+
+Syntaxe : `{ $addToSet: { <field1>: <value1>, ... } }`
 
 ##### `$pop`
 
+L'opérateur `$pop` retire le premier ou le dernier élément du tableau spécifié. Si le champ n'est pas un tableau, la commande échouée, si le tableau est vide suite à l'opération, il reste en tant que tableau vide.
+
+Syntaxe : `{ $pop: { <field>: <-1 | 1>, ... } }`
+
+Si on passe `-1`, le premier élément est retiré, si on passe `1`, le dernier est retiré.
 
 ##### `$pull`
 
+L'opérateur `$pull` supprime toutes les occurences des éléments correspondant aux critères de sélection dans un tableau.
+
+Syntaxe : `{ $pull: { <field1>: <value|condition>, <field2>: <value|condition>, ... } }`
+
+Notes :
+- Si la valeur a supprimer est un tableau, il faut que le critère de sélection soit exactement le même tableau, incluant l'ordre des éléments.
+- Si la valeur est un document, le document devra comporter les mêmes champs, peut importe leur ordre.
 
 ##### `$push`
 
+L'opérateur `$push` permet d'ajouter l'élément en paramètre dans un tableau. Si l'élément en paramètre est un tableau, par défaut, il est inséré en tant que sous-tableau.
+
+Syntaxe : `{ $push: { <field1>: <value1>, ... } }`
 
 ##### `$pullAll`
 
+L'opérateur `$pullAll` permet de supprimer toutes les valeurs listées.
+
+Syntaxe : `{ $pullAll: { <field1>: [ <value1>, <value2> ... ], ... } }`
 
 #### Modifiers pour l'update
 
+En plus des opérateurs, nous avons également différents modifiers qui vont permettre de changer le comportement des opérateurs, pricipalement de l'opérateur `$push`.
+
+| Opérateur                                                                                         | Action                                                                                        |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`$each`](https://docs.mongodb.com/manual/reference/operator/update/each/#up._S_each)             | Modifie les opérateurs `$push` et `$addToSet` pour permettre l'insertion de plusieurs valeurs |
+| [`$position`](https://docs.mongodb.com/manual/reference/operator/update/position/#up._S_position) | Modifie l'opérateur `$push`pour permettre l'insertion à une position précise du tableau       |
+| [`$slice`](https://docs.mongodb.com/manual/reference/operator/update/slice/#up._S_slice)          | Modifie l'opérateur `$push`pour permettre de limiter la taille finale du tableau              |
+| [`$sort`](https://docs.mongodb.com/manual/reference/operator/update/sort/#up._S_sort)             | Modifie l'opérateur `$push`pour trier les éléments du tableau à l'update                      |
 
 ##### `$each`
 
+Modifie les opérateurs `$push` et `$addToSet` pour permettre l'insertion de plusieurs valeurs.
+
+Syntaxes :
+- `{ $addToSet: { <field>: { $each: [ <value1>, <value2> ... ] } } }`
+- `{ $push: { <field>: { $each: [ <value1>, <value2> ... ] } } }`
 
 ##### `$position`
 
+Modifie l'opérateur `$push`pour permettre l'insertion à une position précise du tableau, avec un index basé sur 0. Si on prend des valeurs négatives, il faut compter en positions avant la fin du tableau. Par exemple, `-2` signifie "deux cases avant la dernière case du tableau".
+
+Syntaxe :
+
+```js
+{
+  $push: {
+    <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $position: <num>
+    }
+  }
+}
+```
+
+Remarque : Par défaut, `$push` ajoute les éléments en fin de tableau, c'est pour celà qu'il n'est pas possible de faire cette action avec ce modifier. Le modifier `$position` requiert la présence du modifier `$each`.
 
 ##### `$slice` (Update)
 
+Modifie l'opérateur `$push`pour permettre de limiter la taille finale du tableau. Si on passe on valeur positive, mongo gardera ce nombre d'éléments du tableau en partant du début. Avec une valeur négative, on gardera les derniers éléments du tableau.
+
+Syntaxe :
+
+```js
+{
+  $push: {
+     <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $slice: <num>
+     }
+  }
+}
+```
+
+Remarque : Le modifier `$slice` requiert la présence du modifier `$each`.
 
 ##### `$sort`
 
+Modifie l'opérateur `$push`pour trier les éléments du tableau à l'update
+
+Syntaxe :
+
+```js
+{
+  $push: {
+     <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $sort: <sort specification>
+     }
+  }
+}
+```
+
+Remarques :
+- Pour `<sort specification>` :
+  - Pour faire du tri sur les éléments, quelque soient leur type, il faut passer `1` ou `-1` pour faire des tris croissant ou décroissant.
+  - Si les éléments sont des documents, pour tirer sur un champ en particulier, la syntaxe de `<sort specification>` est la suivante : `{ <field>: 1 }` ou `{ <field>: -1 }`
+- Le modifier `$sort` requiert la présence du modifier `$each`.
+- Dans certaines versions de mongo, le modifier `$slice` est requis. Ce n'est pas notre cas.
 
 ### Sous-documents et tableaux de sous-documents
 
+À l'aide de la notation `.` dans les noms de champs, nous allons pouvoir effectuer toutes sortes de requêtes sur des sous-documents et des tableaux de sous-documents.
+
+Tout ce que nous avons vu jusque ici reste entièrement valable pour ces deux éléments.
+
+> À vous de jouer !
+>
+> Dans cet exercice, nous allons entièrement remodelé notre base iut. Dans un premier temps, supprimez entièrement la base iut (via la commande ou l'[`IHM`](http://localhost:8081)), nous allons ensuite la recréer au propre.
+>
+> Afin de garder notre base relativement simple, nous allons faire les suppositions suivantes :
+> - Il n'y a que trois `salles` TP de cinq `postes` chacunes
+> - Il n'y a que quatre `enseignants`
+> - Il n'y a que deux `groupes` de dix `étudiants` chacuns, en `binômes`
+> - Il n'y a que deux créneaux de cours (matin et après-midi) par jour
+> - La semaine de cours dure du mardi au jeudi
+>
+> Pour cet exercice, nous ne modéliserons que la collection `salles`, et le nécéssaire des sous-documents.
+>
+> Les `salles` sont caractérisées par les éléments suivants :
+> - Un nom
+> - Des `cours`
+> - Des `postes`
+>
+> Les `postes` sont caractérisés par les éléments suivants :
+> - Un nom, sous la forme `<nom de la salle TP>-<identifiant à un chiffre>`
+> - Des `OS` (simples chaînes de caractères)
+> - Une `salle`
+>
+> Les `enseignants` sont caractérisés par les éléments suivants :
+> - Un prénom
+> - Un nom
+> - Des `matières` (simples chaînes de caractères)
+> - Des `cours`
+>
+> Les `groupes` sont caractérisés par les éléments suivants :
+> - Un nom
+> - Des `étudiants`
+> - Une promotion (nombre entier)
+>
+> Les `étudiants` sont caractérisés par les éléments suivants :
+> - Un prénom
+> - Un nom
+> - Un `groupe`
+> - Des `cours`
+> - Un `binôme`
+>
+> Les `binômes` sont caractérisés par les éléments suivants :
+> - Un nom
+> - Des `étudiants`
+>
+> Les `cours` sont caractérisés par les éléments suivants :
+> - Un `enseignant`
+> - Un `groupe`
+> - Une `matière`
+> - Une `salle`
+> - Un jour (simple chaîne de caractères)
+> - Une heure de début (nombre entier)
+> - Une heure de fin (nombre entier)
+>
+> Question 1 : Créez trois salles, respectivement nommées TP01, TP02 et TP03.
+>
+> Question 2 : Ajoutez des postes dans les salles de sorte que :
+> - La TP01 comporte des postes sous Windows 7 et Ubuntu 14
+> - La TP02 comporte des postes sous Windows 7 et Centos 7
+> - La TP03 comporte des postes sous Windows 10 et Ubuntu 14
+>
+> Question 3 : Placez un cours de `programmation réseau` en TP01 le mercredi de 9h à 13h avec `Denis Desroches` et le groupe 2, composé des étudiants suivants :
+> - Alice Duffet
+> - Michèle Roy
+> - Alexis Boivin
+> - Romain Fluet
+> - Vincent Fugère
+> - Coralie Briard
+>
+> Question 4 : Un étudiant rejoint la promo tardivement, ajoutez le au groupe 2 en triant les étudiants par nom de famille croissant et prénom décroissant : Mathias Fluet.
+>
+> Question 5 : Les horraires du cours changent, il a maintenant lieu de 9h à 12h.
+>
+> Question 6 : Récupérez les postes sous Ubuntu 14, en en prenant 3 à partir du second
+>
+> Question 7 : Récupérez les salles ayant des postes sous Windows 7
+>
+> Question 8 : Le poste 3 de la salle 1 tombe en panne, retirez-le
+>
+> Question 9 : Ajoutez les 4 étudiants suivants dans le groupe 2, en veillant à la capacité maximale de la classe :
+> - Emmeline Faure
+> - Martin Guimond
+> - Eugène Quiron
+> - Gauthier Guibord
+>
+> Question 10 : Immaginez maintenant que l'on gère l'emploi du temps d'une année de cette façon, quel(s) problème(s) y voyez-vous ?
+
 ## Agrégats
 
+MongoDB nous met à disposition un pipeline d'aggrégation très complet. Il va nous permettre de faire de nombreuses tâches de recoupage de données, de filtrage, de calculs et de jointures.
 
 ### Map-Reduce
 
+La première façon d'aggréger des données avec MongoDB est l'utilisation de Map-Reduce.
+
+Cette commande va nous permettre d'envoyer des fonctions JavaScript au moteur de MongoDB afin de faire des traitements sur les données.
+
+![Exemple de Map Reduce](https://docs.mongodb.com/manual/_images/map-reduce.bakedsvg.svg)
+
+Bien que très avantageux niveau syntaxique pour un développeur, cette façon de faire reste assez lente sur de très grands volumes de données. C'est pour celà que Mongo a implémenter sa propre pipeline d'aggrégation.
 
 ### Pipeline d'aggrégation
 
+Pour les aggrégats, nous allons utiliser la commande `aggregate()` sur nos collections, ou directement sur notre base.
+
+En mongo, un aggrégat est divisé en différentes phases, appelées `stages`, qui consistent chacune en un opération d'aggrégation de données. Il existe actuellement 23 stages différents pour effecuter ces opérations. La liste complète des stages est disponible dans [la documentation](https://docs.mongodb.com/manual/meta/aggregation-quick-reference/).
+
+![Exemple de pipeline d'aggrégation](https://docs.mongodb.com/manual/_images/aggregation-pipeline.bakedsvg.svg)
+
+En plus de ces stages, nous avons à disposition un peu plus de 200 opérateurs, détaillés dans [la documentation](https://docs.mongodb.com/manual/reference/operator/aggregation/). Une partie d'entre eux possède plusieurs définitions selon le type d'objets sur lequel effectuer des traitements, d'autres sont des opérateurs très similaires à tout ceux que nous avons pu voir jusqu'à présent, et une grande partie consistent en des fonctions mathématiques ou de traitements de tableaux.
+
+Dans le cadre de ce cours, nous n'allons par voir tous ces stages et opérateurs de façon exhaustive, cependant, nous allons nous familiariser avec les stages suivants :
+- [`$addFields`](https://docs.mongodb.com/manual/reference/operator/aggregation/addFields/#pipe._S_addFields)
+- [`$bucket`](https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/#pipe._S_bucket)
+- [`$count`](https://docs.mongodb.com/manual/reference/operator/aggregation/count/#pipe._S_count)
+- [`$facet`](https://docs.mongodb.com/manual/reference/operator/aggregation/facet/#pipe._S_facet)
+- [`$limit`](https://docs.mongodb.com/manual/reference/operator/aggregation/limit/#pipe._S_limit)
+- [`$lookup`](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/#pipe._S_lookup)
+- [`$match`](https://docs.mongodb.com/manual/reference/operator/aggregation/match/#pipe._S_match)
+- [`$out`](https://docs.mongodb.com/manual/reference/operator/aggregation/out/#pipe._S_out)
+- [`$project`](https://docs.mongodb.com/manual/reference/operator/aggregation/project/#pipe._S_project)
+- [`$skip`](https://docs.mongodb.com/manual/reference/operator/aggregation/skip/#pipe._S_skip)
+- [`$sort`](https://docs.mongodb.com/manual/reference/operator/aggregation/sort/#pipe._S_sort)
+- [`$sortByCount`](https://docs.mongodb.com/manual/reference/operator/aggregation/sortByCount/#pipe._S_sortByCount)
+- [`$unwind`](https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/#pipe._S_unwind)
 
 ## Recherches textuelles et par Regex
 
