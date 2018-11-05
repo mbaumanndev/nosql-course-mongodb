@@ -904,7 +904,7 @@ Tout ce que nous avons vu jusque ici reste entièrement valable pour ces deux é
 use iut
 db.createCollection('salles')
 db.salles.insertMany([ { nom: 'TP01' }, { nom: 'TP02' }, { nom: 'TP03' } ])
-// Question 3
+// Question 2
 db.salles.update({ nom: 'TP01' }, {
     $set: { postes: [
         { nom: 'TP01-01', OS: [ 'Windows 7', 'Ubutnu 14' ] },
@@ -931,6 +931,50 @@ db.salles.update({ nom: 'TP03' }, {
         { nom: 'TP03-04', OS: [ 'Windows 10', 'Ubutnu 14' ] },
         { nom: 'TP03-05', OS: [ 'Windows 10', 'Ubutnu 14' ] }
     ]}
+})
+// Question 3
+db.salles.update({ nom: 'TP01' }, {
+    $set: {
+        cours: [
+            {
+                enseignant: {
+                    prenom: 'Denis',
+                    nom: 'Desroches'
+                },
+                groupe: 2,
+                matiere: 'Programmation réseau',
+                jour: 'mercredi',
+                debut: 9,
+                fin: 13,
+                etudiants: [
+                    {
+                        prenom: 'Alice',
+                        nom: 'Duffet'
+                    },
+                    {
+                        prenom: 'Michèle',
+                        nom: 'Roy'
+                    },
+                    {
+                        prenom: 'Alexis',
+                        nom: 'Boivin'
+                    },
+                    {
+                        prenom: 'Romain',
+                        nom: 'Fluet'
+                    },
+                    {
+                        prenom: 'Vincent',
+                        nom: 'Fugère'
+                    },
+                    {
+                        prenom: 'Coralie',
+                        nom: 'Briard'
+                    }
+                ]
+            }
+        ]
+    }
 })
 ```
 
