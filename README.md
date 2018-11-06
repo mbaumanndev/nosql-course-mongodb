@@ -901,10 +901,16 @@ Tout ce que nous avons vu jusque ici reste entièrement valable pour ces deux é
 
 ```js
 // Question 1
+// On se place sur la base
 use iut
+// On créée notre collection
 db.createCollection('salles')
-db.salles.insertMany([ { nom: 'TP01' }, { nom: 'TP02' }, { nom: 'TP03' } ])
+// On insère les TP01 et TP02
+db.salles.insertMany([ { nom: 'TP01' }, { nom: 'TP02' } ])
+// On insère la TP03 avec un champ poste initialisé à tableau vide, ceci afin de vous montrer comment travailler avec quelques opérateurs particuliers
+db.salles.insert({ nom: 'TP03', postes: [] })
 // Question 2
+// On update notre TP01
 db.salles.update({ nom: 'TP01' }, {
     $set: { postes: [
         { nom: 'TP01-01', OS: [ 'Windows 7', 'Ubutnu 14' ] },
@@ -914,6 +920,7 @@ db.salles.update({ nom: 'TP01' }, {
         { nom: 'TP01-05', OS: [ 'Windows 7', 'Ubutnu 14' ] }
     ]}
 })
+// Puis on update notre TP02
 db.salles.update({ nom: 'TP02' }, {
     $set: { postes: [
         { nom: 'TP02-01', OS: [ 'Windows 7', 'Centos 7' ] },
@@ -923,14 +930,30 @@ db.salles.update({ nom: 'TP02' }, {
         { nom: 'TP02-05', OS: [ 'Windows 7', 'Centos 7' ] }
     ]}
 })
+// On va update notre TP03 en deux temps : on va d'abord ajouter les postes, mais avec un OS initialisé sur un tableau vide
 db.salles.update({ nom: 'TP03' }, {
-    $set: { postes: [
-        { nom: 'TP03-01', OS: [ 'Windows 10', 'Ubutnu 14' ] },
-        { nom: 'TP03-02', OS: [ 'Windows 10', 'Ubutnu 14' ] },
-        { nom: 'TP03-03', OS: [ 'Windows 10', 'Ubutnu 14' ] },
-        { nom: 'TP03-04', OS: [ 'Windows 10', 'Ubutnu 14' ] },
-        { nom: 'TP03-05', OS: [ 'Windows 10', 'Ubutnu 14' ] }
-    ]}
+    $push: {
+        postes: {
+            $each: [
+                { nom: 'TP03-01', OS: [] },
+                { nom: 'TP03-02', OS: [] },
+                { nom: 'TP03-03', OS: [] },
+                { nom: 'TP03-04', OS: [] },
+                { nom: 'TP03-05', OS: [] }
+            ]
+        }
+    }
+})
+// Une fois nos postes ajoutés, on va utiliser l'opérateur `$[]` afin de placer les OS dans les postes
+db.salles.update({ nom: 'TP03' }, {
+    $push: {
+        'postes.$[].OS': {
+            $each: [
+                'Windows 10',
+                'Ubuntu 14'
+            ]
+        }
+    }
 })
 // Question 3
 db.salles.update({ nom: 'TP01' }, {
