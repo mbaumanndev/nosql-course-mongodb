@@ -871,7 +871,7 @@ Tout ce que nous avons vu jusque ici reste entièrement valable pour ces deux é
 > - La TP02 comporte des postes sous Windows 7 et Centos 7
 > - La TP03 comporte des postes sous Windows 10 et Ubuntu 14
 >
-> Question 3 : Placez un cours de `programmation réseau` en TP01 le mercredi de 9h à 13h avec `Denis Desroches` et le groupe 2, composé des étudiants suivants :
+> Question 3 : Placez un cours de `programmation réseau` en TP01 le mercredi de 10h à 13h avec `Denis Desroches` et le groupe 2, composé des étudiants suivants :
 > - Alice Duffet
 > - Michèle Roy
 > - Alexis Boivin
@@ -1083,47 +1083,47 @@ db.salles.update({ nom: 'TP03' }, {
 // })
 // Question 3
 db.salles.update({ nom: 'TP01' }, {
-    $set: {
-        cours: [
-            {
-                enseignant: {
-                    prenom: 'Denis',
-                    nom: 'Desroches'
-                },
-                groupe: 2,
-                matiere: 'Programmation réseau',
-                jour: 'mercredi',
-                debut: 9,
-                fin: 13,
-                etudiants: [
-                    {
-                        prenom: 'Alice',
-                        nom: 'Duffet'
-                    },
-                    {
-                        prenom: 'Michèle',
-                        nom: 'Roy'
-                    },
-                    {
-                        prenom: 'Alexis',
-                        nom: 'Boivin'
-                    },
-                    {
-                        prenom: 'Romain',
-                        nom: 'Fluet'
-                    },
-                    {
-                        prenom: 'Vincent',
-                        nom: 'Fugère'
-                    },
-                    {
-                        prenom: 'Coralie',
-                        nom: 'Briard'
-                    }
-                ]
-            }
+  $set: {
+    cours: [
+      {
+        enseignant: {
+          prenom: 'Denis',
+          nom: 'Desroches'
+        },
+        groupe: 2,
+        matiere: 'Programmation réseau',
+        jour: 'mercredi',
+        debut: 10,
+        fin: 13,
+        etudiants: [
+          {
+            prenom: 'Alice',
+            nom: 'Duffet'
+          },
+          {
+            prenom: 'Michèle',
+            nom: 'Roy'
+          },
+          {
+            prenom: 'Alexis',
+            nom: 'Boivin'
+          },
+          {
+            prenom: 'Romain',
+            nom: 'Fluet'
+          },
+          {
+            prenom: 'Vincent',
+            nom: 'Fugère'
+          },
+          {
+            prenom: 'Coralie',
+            nom: 'Briard'
+          }
         ]
-    }
+      }
+    ]
+  }
 })
 ```
 
