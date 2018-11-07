@@ -906,47 +906,156 @@ use iut
 // On créée notre collection
 db.createCollection('salles')
 // On insère les TP01 et TP02
-db.salles.insertMany([ { nom: 'TP01' }, { nom: 'TP02' } ])
+db.salles.insertMany([
+    { nom: 'TP01' },
+    { nom: 'TP02' }
+])
 // On insère la TP03 avec un champ poste initialisé à tableau vide, ceci afin de vous montrer comment travailler avec quelques opérateurs particuliers
 db.salles.insert({ nom: 'TP03', postes: [] })
 // Question 2
 // On update notre TP01
 db.salles.update({ nom: 'TP01' }, {
     $set: { postes: [
-        { nom: 'TP01-01', OS: [ 'Windows 7', 'Ubutnu 14' ] },
-        { nom: 'TP01-02', OS: [ 'Windows 7', 'Ubutnu 14' ] },
-        { nom: 'TP01-03', OS: [ 'Windows 7', 'Ubutnu 14' ] },
-        { nom: 'TP01-04', OS: [ 'Windows 7', 'Ubutnu 14' ] },
-        { nom: 'TP01-05', OS: [ 'Windows 7', 'Ubutnu 14' ] }
+        {
+            nom: 'TP01-01',
+            OS: [
+                'Windows 7',
+                'Ubutnu 14'
+            ]
+        },
+        {
+            nom: 'TP01-02',
+            OS: [
+                'Windows 7',
+                'Ubutnu 14'
+            ]
+        },
+        {
+            nom: 'TP01-03',
+            OS: [
+                'Windows 7',
+                'Ubutnu 14'
+            ]
+        },
+        {
+            nom: 'TP01-04',
+            OS: [
+                'Windows 7',
+                'Ubutnu 14'
+            ]
+        },
+        {
+            nom: 'TP01-05',
+            OS: [
+                'Windows 7',
+                'Ubutnu 14'
+            ]
+        }
     ]}
 })
 // Puis on update notre TP02
 db.salles.update({ nom: 'TP02' }, {
     $set: { postes: [
-        { nom: 'TP02-01', OS: [ 'Windows 7', 'Centos 7' ] },
-        { nom: 'TP02-02', OS: [ 'Windows 7', 'Centos 7' ] },
-        { nom: 'TP02-03', OS: [ 'Windows 7', 'Centos 7' ] },
-        { nom: 'TP02-04', OS: [ 'Windows 7', 'Centos 7' ] },
-        { nom: 'TP02-05', OS: [ 'Windows 7', 'Centos 7' ] }
+        {
+            nom: 'TP02-01',
+            OS: [
+                'Windows 7',
+                'Centos 7'
+            ]
+        },
+        {
+            nom: 'TP02-02',
+            OS: [
+                'Windows 7',
+                'Centos 7'
+            ]
+        },
+        {
+            nom: 'TP02-03',
+            OS: [
+                'Windows 7',
+                'Centos 7'
+            ]
+        },
+        {
+            nom: 'TP02-04',
+            OS: [
+                'Windows 7',
+                'Centos 7'
+            ]
+        },
+        {
+            nom: 'TP02-05',
+            OS: [
+                'Windows 7',
+                'Centos 7'
+            ]
+        }
     ]}
 })
-// On va update notre TP03 en deux temps : on va d'abord ajouter les postes, mais avec un OS initialisé sur un tableau vide
+// On va update notre TP03 en deux temps : on va d'abord ajouter les postes,
+// mais avec un OS initialisé sur un tableau vide, sauf pour le premier poste
+// Notez que l'ordre des poste n'est pas correct, mais que l'on effectue un tri
+// et que l'on limite la taille du tableau
 db.salles.update({ nom: 'TP03' }, {
     $push: {
         postes: {
             $each: [
-                { nom: 'TP03-01', OS: [] },
-                { nom: 'TP03-02', OS: [] },
-                { nom: 'TP03-03', OS: [] },
-                { nom: 'TP03-04', OS: [] },
-                { nom: 'TP03-05', OS: [] }
-            ]
+                {
+                    nom: 'TP03-01',
+                    OS: [
+                        'Windows 10',
+                        'Ubuntu 14'
+                    ]
+                },
+                {
+                    nom: 'TP03-02',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-06',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-07',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-03',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-04',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-05',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-08',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-09',
+                    OS: []
+                },
+                {
+                    nom: 'TP03-10',
+                    OS: []
+                }
+            ],
+            $slice: 5,
+            $sort: {
+                nom: 1
+            }
         }
     }
 })
 // Une fois nos postes ajoutés, on va utiliser l'opérateur `$[]` afin de placer les OS dans les postes
+// Notez l'utilisation de `$addToSet` pour éviter d'insérer les valeurs si elles sont déjà présentes
 db.salles.update({ nom: 'TP03' }, {
-    $push: {
+    $addToSet: {
         'postes.$[].OS': {
             $each: [
                 'Windows 10',
@@ -1025,7 +1134,7 @@ En mongo, un aggrégat est divisé en différentes phases, appelées `stages`, q
 
 En plus de ces stages, nous avons à disposition un peu plus de 200 opérateurs, détaillés dans [la documentation](https://docs.mongodb.com/manual/reference/operator/aggregation/). Une partie d'entre eux possède plusieurs définitions selon le type d'objets sur lequel effectuer des traitements, d'autres sont des opérateurs très similaires à tout ceux que nous avons pu voir jusqu'à présent, et une grande partie consistent en des fonctions mathématiques ou de traitements de tableaux.
 
-Dans le cadre de ce cours, nous n'allons par voir tous ces stages et opérateurs de façon exhaustive, cependant, nous allons nous familiariser avec les stages suivants :
+Dans le cadre de ce cours, nous n'allons par voir tous ces stages et opérateurs de façon exhaustive, cependant, nous allons nous familiariser avec les opérateurs suivants :
 - [`$addFields`](https://docs.mongodb.com/manual/reference/operator/aggregation/addFields/#pipe._S_addFields)
 - [`$bucket`](https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/#pipe._S_bucket)
 - [`$count`](https://docs.mongodb.com/manual/reference/operator/aggregation/count/#pipe._S_count)
