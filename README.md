@@ -1064,6 +1064,23 @@ db.salles.update({ nom: 'TP03' }, {
         }
     }
 })
+// On aurait pu procéder comme ceci :
+// db.salles.update({ nom: 'TP03' }, {
+//     $addToSet: {
+//         'postes.$[poste].OS': {
+//             $each: [
+//                 'Windows 10',
+//                 'Ubuntu 14'
+//             ]
+//         }
+//     }
+// }, {
+//     arrayFilters: [
+//         {
+//             'poste.nom': { $ne: 'TP03-01' }
+//         }
+//     ]
+// })
 // Question 3
 db.salles.update({ nom: 'TP01' }, {
     $set: {
