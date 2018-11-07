@@ -62,7 +62,7 @@ NoSQL Course MongoDB
   - [Correction](#correction-1)
 - [Agrégats](#agr%C3%A9gats)
   - [Map-Reduce](#map-reduce)
-  - [Pipeline d'aggrégation](#pipeline-daggr%C3%A9gation)
+  - [Pipeline d'agrégation](#pipeline-dagr%C3%A9gation)
 - [Recherches textuelles et par Regex](#recherches-textuelles-et-par-regex)
 - [Recherche Géospatiale](#recherche-g%C3%A9ospatiale)
 - [Introduction à la mise en place de cluster mongodb](#introduction-%C3%A0-la-mise-en-place-de-cluster-mongodb)
@@ -1125,29 +1125,112 @@ db.salles.update({ nom: 'TP01' }, {
     ]
   }
 })
+// Question 4
+db.salles.update({
+  nom: 'TP01'
+}, {
+  $push: {
+    'cours.0.etudiants': {
+      $each: [
+        {
+          prenom: 'Mathias',
+          nom: 'Fluet'
+        }
+      ],
+      $sort: {
+        nom: 1,
+        prenom: -1
+      }
+    }
+  }
+})
+// Question 5
+db.salles.update({
+  nom: 'TP01'
+}, {
+  $set: {
+    'cours.0.debut': 9,
+    'cours.0.fin': 12
+  }
+})
+// Question 6
+db.salles.find({
+  'postes.OS': 'Ubuntu 14'
+}, {
+  _id: 0,
+  'postes.nom': 1,
+  postes: {
+    $slice: [2, 3]
+  }
+})
+// Question 7
+db.salles.find({
+  'postes.OS': 'Windows 7'
+}, {
+  _id: 0,
+  'nom': 1
+})
+// Question 8
+db.salles.update({
+  nom: 'TP01'
+}, {
+  $pull: {
+    'postes': {
+      nom: 'TP01-03'
+    }
+  }
+})
+// Question 9
+db.salles.update({
+  nom: 'TP01'
+}, {
+  $push: {
+    'cours.0.etudiants': {
+      $each: [
+        {
+          prenom: 'Emmeline',
+          nom: 'Faure'
+        },
+        {
+          prenom: 'Martin',
+          nom: 'Guimond'
+        },
+        {
+          prenom: 'Eugène',
+          nom: 'Quiron'
+        },
+        {
+          prenom: 'Gauthier',
+          nom: 'Guibord'
+        },
+      ],
+      $slice: 10
+    }
+  }
+})
 ```
 
 ## Agrégats
 
-MongoDB nous met à disposition un pipeline d'aggrégation très complet. Il va nous permettre de faire de nombreuses tâches de recoupage de données, de filtrage, de calculs et de jointures.
+MongoDB nous met à disposition un pipeline d'agrégation très complet. Il va nous permettre de faire de nombreuses tâches de recoupage de données, de filtrage, de calculs et de jointures.
 
 ### Map-Reduce
 
-La première façon d'aggréger des données avec MongoDB est l'utilisation de Map-Reduce.
+La première façon d'agréger des données avec MongoDB est l'utilisation de Map-Reduce.
 
 Cette commande va nous permettre d'envoyer des fonctions JavaScript au moteur de MongoDB afin de faire des traitements sur les données.
 
 ![Exemple de Map Reduce](https://docs.mongodb.com/manual/_images/map-reduce.bakedsvg.svg)
 
-Bien que très avantageux niveau syntaxique pour un développeur, cette façon de faire reste assez lente sur de très grands volumes de données. C'est pour celà que Mongo a implémenter sa propre pipeline d'aggrégation.
+Bien que très avantageux niveau syntaxique pour un développeur, cette façon de faire reste assez lente sur de très grands volumes de données. C'est pour celà que Mongo a implémenter sa propre pipeline d'agrégation.
 
-### Pipeline d'aggrégation
+### Pipeline d'agrégation
 
-Pour les aggrégats, nous allons utiliser la commande `aggregate()` sur nos collections, ou directement sur notre base.
+Pour les agrégats, nous allons utiliser la commande `aggregate()` sur nos collections, ou directement sur notre base.
 
-En mongo, un aggrégat est divisé en différentes phases, appelées `stages`, qui consistent chacune en un opération d'aggrégation de données. Il existe actuellement 23 stages différents pour effecuter ces opérations. La liste complète des stages est disponible dans [la documentation](https://docs.mongodb.com/manual/meta/aggregation-quick-reference/).
+En mongo, un agrégat est divisé en différentes phases, appelées `stages`, qui consistent chacune en un opération d'agrégation de données. Il existe actuellement 23 stages différents pour effecuter ces opérations. La liste complète des stages est disponible dans [la documentation](https://docs.mongodb.com/manual/meta/aggregation-quick-reference/).
 
-![Exemple de pipeline d'aggrégation](https://docs.mongodb.com/manual/_images/aggregation-pipeline.bakedsvg.svg)
+![Exemple de pipeline d'agrégation](https://docs.mongodb.com/manual/_images/aggregation-pipeline.bakedsvg.svg)
 
 En plus de ces stages, nous avons à disposition un peu plus de 200 opérateurs, détaillés dans [la documentation](https://docs.mongodb.com/manual/reference/operator/aggregation/). Une partie d'entre eux possède plusieurs définitions selon le type d'objets sur lequel effectuer des traitements, d'autres sont des opérateurs très similaires à tout ceux que nous avons pu voir jusqu'à présent, et une grande partie consistent en des fonctions mathématiques ou de traitements de tableaux.
 
@@ -1168,15 +1251,15 @@ Dans le cadre de ce cours, nous n'allons par voir tous ces stages et opérateurs
 
 ## Recherches textuelles et par Regex
 
-
+Je mettrai cette partie en ligne ultérieurement, en complément du cours.
 
 ## Recherche Géospatiale
 
-
+Je mettrai cette partie en ligne ultérieurement, en complément du cours.
 
 ## Introduction à la mise en place de cluster mongodb
 
-
+Je mettrai cette partie en ligne ultérieurement, en complément du cours.
 
 ## Pour aller plus loins
 
