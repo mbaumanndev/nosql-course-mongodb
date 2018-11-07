@@ -1263,4 +1263,4 @@ Je mettrai cette partie en ligne ultérieurement, en complément du cours.
 
 ## Pour aller plus loins
 
-
+Nous avons commencé à nous familiariser avec MongoDB et ses fonctionnalités de base au long de ce cours. Ceci nous a permis d'avoir une première approche d'un SGBD NoSQL orienté documents. Il existe de nombreux autre SGBD NoSQL basés sur ce même principe, avec des différences sur le langages de requêtage, des différences sur la gestion des données en mode répartit, sur la gestion du volume, etc. Les "concurents" les plus connus sont [Couchbase Server](https://www.couchbase.com/), [CouchDB](https://couchdb.apache.org/) et [CosmosDB](https://azure.microsoft.com/fr-fr/services/cosmos-db/) (disponible en tant que service Cloud Microsoft Azure).
