@@ -639,7 +639,7 @@ Mongo propose différents opérateurs de projection, nous allons nous intéress�
 |------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | [`$`](https://docs.mongodb.com/manual/reference/operator/projection/positional/#proj._S_)                  | Permet de projeter le premier élément de tableau remplissant la condition de recherche              |
 | [`$elemMatch`](https://docs.mongodb.com/manual/reference/operator/projection/elemMatch/#proj._S_elemMatch) | Permet de projeter le premier élément de tableau remplissant la condition de recherche en paramètre |
-| [`$slice`](https://docs.mongodb.com/manual/reference/operator/projection/slice/#proj._S_slice              | Permet de projeter une partie du tableau                                                            |
+| [`$slice`](https://docs.mongodb.com/manual/reference/operator/projection/slice/#proj._S_slice)             | Permet de projeter une partie du tableau                                                            |
 
 ##### `$` (Projection)
 
@@ -682,7 +682,7 @@ Pour mettre à jour les tableaux, mongo nous offre de nouveau plusieurs opérate
 
 ##### `$`, `$[]` et `$[<identifier>]`
 
-Pour ces trois opérateurs, nous allons directement nous reporter à la documentationde mongo :
+Pour ces trois opérateurs, nous allons directement nous reporter à la documentation de mongo :
 - [Documentation : `$`](https://docs.mongodb.com/manual/reference/operator/update/positional/#up._S_)
 - [Documentation : `$[]`](https://docs.mongodb.com/manual/reference/operator/update/positional-all/#up._S_[])
 - [Documentation : `$[<identifier>]`](https://docs.mongodb.com/manual/reference/operator/update/positional-filtered/#up._S_[%3Cidentifier%3E])
